@@ -6,6 +6,8 @@
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.DriverManager;
 
 /**
  * Główna klasa aplikacji przekaźnika
@@ -53,8 +55,17 @@ public class Server {
      * @param args
      */
     public static void main(String[] args) {
-        Server server = new Server();
-        server.StartServer();
+//        Server server = new Server();
+//        server.StartServer();
+        Connection c = null;
+        try {
+            Class.forName("org.sqlite.JDBC");
+            c = DriverManager.getConnection("jdbc:sqlite:test.db");
+        } catch ( Exception e ) {
+            System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+            System.exit(0);
+        }
+        System.out.println("Opened database successfully");
     }
 
     /**
