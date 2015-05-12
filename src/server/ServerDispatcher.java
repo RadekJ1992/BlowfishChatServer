@@ -1,3 +1,6 @@
+package server;
+
+import server.RelayClientInfo;
 
 import java.net.Socket;
 import java.util.Vector;
@@ -124,7 +127,7 @@ public class ServerDispatcher implements Runnable
 
     public void run()
     {
-        System.out.println("Server Dispatcher started");
+        System.out.println("server.Server Dispatcher started");
         try {
             while (true) {
                 if (!servers.isEmpty()) {

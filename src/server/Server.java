@@ -1,8 +1,9 @@
-/**
+package server; /**
  * created on 19:59:40 3 lis 2014 by Radoslaw Jarzynka
  * 
  * @author Radoslaw Jarzynka
  */
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -55,7 +56,7 @@ public class Server {
      * @param args
      */
     public static void main(String[] args) {
-//        Server server = new Server();
+//        server.Server server = new server.Server();
 //        server.StartServer();
         Connection c = null;
         try {
