@@ -10,6 +10,10 @@ public class User {
     private String password;
     private String token;
 
+    public User(String username) {
+        this.username = username;
+    }
+
     public Integer getId() {
         return id;
     }
@@ -40,5 +44,8 @@ public class User {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public User() {
     }
 }

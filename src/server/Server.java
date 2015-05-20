@@ -15,40 +15,31 @@ import java.sql.DriverManager;
  */
 public class Server {
 
-    public static final int CLIENTS_PORT = 9000;
-    public static final int SERVERS_PORT = 8000;
+    public static final int PORT = 8000;
+    private ServerDispatcher serverDispatcher = new ServerDispatcher();
 
     /**
      * Rozpoczęcie pracy serwera
      */
     public void StartServer() {
         // Open server socket for listening
-        ServerSocket serverSocketForClients = null;
-        ServerSocket serverSocketForServers = null;
+        ServerSocket serverSocket = null;
         try {
-            serverSocketForClients = new ServerSocket(CLIENTS_PORT);
-            serverSocketForServers = new ServerSocket(SERVERS_PORT);
-            System.out.println("Relay for Clients started on port " + CLIENTS_PORT);
-            System.out.println("Relay for Servers started on port " + SERVERS_PORT);
+            serverSocket = new ServerSocket(PORT);
+            System.out.println("Server started on port " + PORT);
         } catch (IOException se) {
-            System.err.println("Can not start listening on ports " + CLIENTS_PORT + " and " + SERVERS_PORT);
+            System.err.println("Can not start listening on ports " + PORT);
             se.printStackTrace();
             System.exit(-1);
         }
 
-        ServerDispatcher serverDispatcher = new ServerDispatcher();
-        Thread dispatcherThread = new Thread(serverDispatcher);
-        dispatcherThread.start();
+        //Thread dispatcherThread = new Thread(serverDispatcher);
+        //dispatcherThread.start();
         System.out.println("Created Handler for Clients");
-        Handler handlerForClients = new Handler(serverSocketForClients, serverDispatcher, false);
+        Handler handlerForClients = new Handler(serverSocket, serverDispatcher);
         Thread clientsHandlerThread = new Thread (handlerForClients);
-        System.out.println("Created Handler for Servers");
-        Handler handlerForServers = new Handler(serverSocketForServers, serverDispatcher, true);
-        Thread serversHandlerThread = new Thread(handlerForServers);
 
         clientsHandlerThread.start();
-        serversHandlerThread.start();
-
     }
 
     /**
@@ -56,17 +47,8 @@ public class Server {
      * @param args
      */
     public static void main(String[] args) {
-//        server.Server server = new server.Server();
-//        server.StartServer();
-        Connection c = null;
-        try {
-            Class.forName("org.sqlite.JDBC");
-            c = DriverManager.getConnection("jdbc:sqlite:test.db");
-        } catch ( Exception e ) {
-            System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-            System.exit(0);
-        }
-        System.out.println("Opened database successfully");
+        server.Server server = new server.Server();
+        server.StartServer();
     }
 
     /**
@@ -75,26 +57,18 @@ public class Server {
     private class Handler implements Runnable {
 
         private ServerSocket relayClientSocket;
-        private boolean isForServers;
         private ServerDispatcher serverDispatcher;
 
-        public Handler(ServerSocket relayClientSocket, ServerDispatcher serverDispatcher, boolean isForServers) {
+        public Handler(ServerSocket relayClientSocket, ServerDispatcher serverDispatcher) {
             this.relayClientSocket = relayClientSocket;
             this.serverDispatcher = serverDispatcher;
-            this.isForServers = isForServers;
         }
 
         @Override
         public void run() {
             while (true) {
                 try {
-                    String type;
-                    if (isForServers) {
-                        type = (" Servers ");
-                    } else {
-                        type = (" Clients ");
-                    }
-                    System.out.println("Socket For" + type + "Opened");
+                    System.out.println("Socket Opened");
                     Socket socket = relayClientSocket.accept();
                     RelayClientInfo relayClientInfo = new RelayClientInfo();
                     relayClientInfo.socket = socket;
@@ -106,11 +80,7 @@ public class Server {
                     relayClientInfo.relayClientSender = relayClientSender;
                     relayClientListener.start();
                     relayClientSender.start();
-                    if (isForServers) {
-                        serverDispatcher.addServer(relayClientInfo);
-                    } else {
-                        serverDispatcher.addClient(relayClientInfo);
-                    }
+                    serverDispatcher.addClient(relayClientInfo);
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }

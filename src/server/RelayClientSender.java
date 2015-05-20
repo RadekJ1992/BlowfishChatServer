@@ -49,6 +49,7 @@ public class RelayClientSender extends Thread
         while (messages.size()==0) {
             return null;
         }
+        //TODO pobranie z bazy wiadomości z tym userem i z flaga sent = 0;
         String message = (String) messages.get(0);
         messages.removeElementAt(0);
         return message;
@@ -83,7 +84,6 @@ public class RelayClientSender extends Thread
 
         relayClientInfo.relayClientListener.interrupt();
         serverDispatcher.deleteClient(relayClientInfo);
-        serverDispatcher.deleteServer(relayClientInfo);
     }
 
 }

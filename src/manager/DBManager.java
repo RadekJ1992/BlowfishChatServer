@@ -233,8 +233,33 @@ public class DBManager {
             int userId = message.getUserId();
             int senderId = message.getSenderId();
             String msg = message.getMessage();
-            String sql = "INSERT INTO MESSAGES (USER_ID, SENDER_ID, MESSAGE) " +
-                    "VALUES (?,?,?);";
+            String sql = "INSERT INTO MESSAGES (USER_ID, SENDER_ID, MESSAGE, SENT) " +
+                    "VALUES (?,?,?,0);";
+            stmt = c.prepareStatement(sql);
+            stmt.setInt(1, userId);
+            stmt.setInt(2, senderId);
+            stmt.setString(3, msg);
+            stmt.executeUpdate();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendMessage(Message message) {
+        Connection c;
+        PreparedStatement stmt = null;
+        try {
+            Class.forName("org.sqlite.JDBC");
+            c = DriverManager.getConnection(DATABASE_LOCATION);
+            int userId = message.getUserId();
+            int senderId = message.getSenderId();
+            String msg = message.getMessage();
+            String sql = "UPDATE MESSAGES SET SENT = 1 " +
+                    "WHERE USER_ID = ? " +
+                    "AND SENDER_ID = ? " +
+                    "AND MESSAGE = ?;";
             stmt = c.prepareStatement(sql);
             stmt.setInt(1, userId);
             stmt.setInt(2, senderId);
@@ -255,7 +280,7 @@ public class DBManager {
             Class.forName("org.sqlite.JDBC");
             c = DriverManager.getConnection(DATABASE_LOCATION);
 
-            String selectSQL = "SELECT USER_ID, SENDER_ID, MESSAGE FROM MESSAGES WHERE USER_ID = ? order by ID DESC";
+            String selectSQL = "SELECT USER_ID, SENDER_ID, MESSAGE FROM MESSAGES WHERE USER_ID = ? ANS SEND = 0 order by ID DESC";
             preparedStatement = c.prepareStatement(selectSQL);
             preparedStatement.setInt(1, user.getId());
             ResultSet rs = preparedStatement.executeQuery();

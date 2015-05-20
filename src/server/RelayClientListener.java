@@ -47,7 +47,6 @@ public class RelayClientListener extends Thread
 
         relayClientInfo.relayClientSender.interrupt();
         serverDispatcher.deleteClient(relayClientInfo);
-        serverDispatcher.deleteServer(relayClientInfo);
     }
 
 }
