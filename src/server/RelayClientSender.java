@@ -1,9 +1,14 @@
 package server;
 
+import manager.DBManager;
+import model.Message;
+import model.User;
+
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -74,9 +79,24 @@ public class RelayClientSender extends Thread
                 if (message != null) {
                     sendMessageToClient(message);
                 }
+                if (relayClientInfo.userName != null) {
+                    List<Message> dbMessages = DBManager.getInstance().getUserMessages(new User(relayClientInfo.userName));
+
+                    for (Message msg : dbMessages) {
+                        User sender = DBManager.getInstance().getUserById(msg.getSenderId());
+                        sendMessageToClient("MSG;" + sender.getUsername() + ";" + msg.getMessage());
+                        DBManager.getInstance().sendMessage(msg);
+                    }
+                }
                 Thread.sleep(200);
             }
         } catch (Exception e) {
+            try {
+                relayClientInfo.socket.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            relayClientInfo.userName = null;
             e.printStackTrace();
         } finally {
             System.out.println(relayClientInfo.socket.getInetAddress() + " Disconnected");

@@ -52,6 +52,7 @@ public class DBManager {
                     "USER_ID INTEGER NOT NULL," +
                     "SENDER_ID INTEGER NOT NULL," +
                     "MESSAGE TEXT," +
+                    "SENT INTEGER," +
                     "FOREIGN KEY(USER_ID) REFERENCES USERS(ID) ON UPDATE CASCADE) ";
             stmt2.executeUpdate(sql2);
             stmt2.close();
@@ -110,7 +111,7 @@ public class DBManager {
             preparedStatement.setInt(1, id);
             ResultSet rs = preparedStatement.executeQuery();
 
-            if ( rs.first() ) {
+            if ( rs.next() ) {
                 user = new User();
                 user.setId(rs.getInt("ID"));;
                 user.setUsername(rs.getString("USERNAME"));;
@@ -134,12 +135,12 @@ public class DBManager {
             Class.forName("org.sqlite.JDBC");
             c = DriverManager.getConnection(DATABASE_LOCATION);
 
-            String selectSQL = "SELECT ID, USERNAME, PASSWORD, TOKEN FROM USERS WHERE NAME = ?";
+            String selectSQL = "SELECT ID, USERNAME, PASSWORD, TOKEN FROM USERS WHERE USERNAME = ?";
             preparedStatement = c.prepareStatement(selectSQL);
             preparedStatement.setString(1, username);
             ResultSet rs = preparedStatement.executeQuery();
 
-            if ( rs.first() ) {
+            if ( rs.next() ) {
                 user = new User();
                 user.setId(rs.getInt("ID"));;
                 user.setUsername(rs.getString("USERNAME"));;
@@ -163,7 +164,7 @@ public class DBManager {
             c = DriverManager.getConnection(DATABASE_LOCATION);
             int userID = user.getId();
             String token = generateToken();
-            String sql = "UPDATE USERS SET TOKEN = ? WHERE USER_ID = ?;";
+            String sql = "UPDATE USERS SET TOKEN = ? WHERE ID = ?;";
             stmt = c.prepareStatement(sql);
             stmt.setString(1, token);
             stmt.setInt(2, userID);
@@ -199,6 +200,7 @@ public class DBManager {
     }
 
     public boolean isTokenValid(User user, String token) {
+        User _user = getUserByUsername(user.getUsername());
         Connection c;
         PreparedStatement preparedStatement = null;
         try {
@@ -207,11 +209,11 @@ public class DBManager {
 
             String selectSQL = "SELECT TOKEN FROM USERS WHERE ID = ?";
             preparedStatement = c.prepareStatement(selectSQL);
-            preparedStatement.setInt(1, user.getId());
+            preparedStatement.setInt(1, _user.getId());
             ResultSet rs = preparedStatement.executeQuery();
 
             String _token = null;
-            if ( rs.first() ) {
+            if ( rs.next() ) {
                 _token = rs.getString("TOKEN");
             }
             rs.close();
@@ -272,7 +274,9 @@ public class DBManager {
         }
     }
 
-    public List<Message> getUserMessages(User user) {
+    public List<Message> getUserMessages(User _user) {
+
+        User user = getUserByUsername(_user.getUsername());
         Connection c;
         PreparedStatement preparedStatement = null;
         List<Message> result = new ArrayList<Message>();
@@ -280,7 +284,7 @@ public class DBManager {
             Class.forName("org.sqlite.JDBC");
             c = DriverManager.getConnection(DATABASE_LOCATION);
 
-            String selectSQL = "SELECT USER_ID, SENDER_ID, MESSAGE FROM MESSAGES WHERE USER_ID = ? ANS SEND = 0 order by ID DESC";
+            String selectSQL = "SELECT USER_ID, SENDER_ID, MESSAGE FROM MESSAGES WHERE USER_ID = ? AND SENT = 0 order by ID ASC";
             preparedStatement = c.prepareStatement(selectSQL);
             preparedStatement.setInt(1, user.getId());
             ResultSet rs = preparedStatement.executeQuery();
@@ -302,5 +306,31 @@ public class DBManager {
 
     private String generateToken() {
         return new BigInteger(130, random).toString(32);
+    }
+
+    public List<String> getAllUsers(String user) {
+        Connection c;
+        PreparedStatement preparedStatement = null;
+        List<String> result = new ArrayList<>();
+        try {
+            Class.forName("org.sqlite.JDBC");
+            c = DriverManager.getConnection(DATABASE_LOCATION);
+
+            String selectSQL = "SELECT USERNAME FROM USERS";
+            preparedStatement = c.prepareStatement(selectSQL);
+            ResultSet rs = preparedStatement.executeQuery();
+            if (rs.next()) {
+                String _username = rs.getString("USERNAME");
+                if (!user.equals(_username)) {
+                    result.add(_username);
+                }
+            }
+            rs.close();
+            preparedStatement.close();
+            c.close();
+        } catch ( Exception e ) {
+            e.printStackTrace();
+        }
+        return result;
     }
 }
