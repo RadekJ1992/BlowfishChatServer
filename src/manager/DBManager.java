@@ -319,7 +319,7 @@ public class DBManager {
             String selectSQL = "SELECT USERNAME FROM USERS";
             preparedStatement = c.prepareStatement(selectSQL);
             ResultSet rs = preparedStatement.executeQuery();
-            if (rs.next()) {
+            while (rs.next()) {
                 String _username = rs.getString("USERNAME");
                 if (!user.equals(_username)) {
                     result.add(_username);
